@@ -78,7 +78,7 @@
 
 ## References
 
-[1]Y. Chen and J. Cong, "Interconnect synthesis of heterogeneous accelerators in a shared memory architecture," 2015 IEEE/ACM International Symposium on Low Power Electronics and Design (ISLPED), Rome, 2015, pp. 359-364.
+[2]Y. Chen and J. Cong, "Interconnect synthesis of heterogeneous accelerators in a shared memory architecture," 2015 IEEE/ACM International Symposium on Low Power Electronics and Design (ISLPED), Rome, 2015, pp. 359-364.
 
 
 
@@ -118,7 +118,7 @@
 
 其中，DMA负责在SPM和共享的L2缓存之间传输数据，在SPM之间传输数据， 
 
-全球加速器管理器(GAM):
+全局加速器管理器(GAM):
 
 1)它提供了一个软件调用加速器的单一接口，
 
@@ -146,7 +146,7 @@ Hybrid Network就是在network中不仅有circuit-switching还有packet-switchin
 
 ## References
 
-[1]J. Cong, M. Gill, Y. Hao, G. Reinman and Bo Yuan, "On-chip interconnection network for accelerator-rich architectures," 2015 52nd ACM/EDAC/IEEE Design Automation Conference (DAC), San Francisco, CA, 2015, pp. 1-6.   
+[3]J. Cong, M. Gill, Y. Hao, G. Reinman and Bo Yuan, "On-chip interconnection network for accelerator-rich architectures," 2015 52nd ACM/EDAC/IEEE Design Automation Conference (DAC), San Francisco, CA, 2015, pp. 1-6.   
 
 
 
@@ -219,7 +219,7 @@ accelerator与CPU不同的地方就是数据的throughput比较大，可以从�
 
 ## References
 
-[1]Pham-Quoc, Cuong. (2015). Hybrid Interconnect Design for Heterogeneous Hardware Accelerators. 10.4233/uuid:862e5b58-b9d1-462a-90b0-6f94a054632e. 
+[4]Pham-Quoc, Cuong. (2015). Hybrid Interconnect Design for Heterogeneous Hardware Accelerators. 10.4233/uuid:862e5b58-b9d1-462a-90b0-6f94a054632e. 
 
 
 
@@ -280,7 +280,107 @@ network interface（NI）在每个ordering point接收并检查token，确保每
 
 ## References
 
- [1]Yin, J. . (2015). Time-division-multiplexing based hybrid-switched noc for heterogeneous multicore systems. *Dissertations & Theses - Gradworks*.
+ [5]Yin, J. . (2015). Time-division-multiplexing based hybrid-switched noc for heterogeneous multicore systems. *Dissertations & Theses - Gradworks*.
+
+
+
+
+
+# **6 Hybrid On-Chip Communication Architectures for Heterogeneous Manycore Systems** 
+
+## 1 研究目的
+
+本文主要是对于CPU和GPU的多核系统提出的改进方案，使得CPU与MC（memory controller）之间的延迟最小，GPU与MC之间的throughput的对时间的影响最小。   
+
+主要提出了三个改进方案：
+
+1）ML-enabled NoC design optimization
+
+2）Three-Dimensional (3D) NoC
+
+#### 1.1  数据传输模式
+
+片上的组成如下图所示，少量的CPU和MC，大量的GPU：
+
+<img src="./6.1.png" alt="6.1" style="zoom:67%;" />
+
+其中CPU是latency-sensitive，GPU是throughput-sensitive，而在数据传输方面，GPU-MC的数据传输是最多的：
+
+<img src="./6.2.png" alt="6.2" style="zoom:67%;" />
+
+#### 1.2 ML-enabled NoC design optimization
+
+将新提出的MOO-STAGE与传统的多目标优化AMOSA进行对比，MOO-STAGE提出一种选取初始值的方法，从之前的搜索轨迹中学习一个函数，来判断最佳初始值，使得性能得到优化，energy与latency乘积减小。
+
+#### 1.3 Three-Dimensional (3D) NoC
+
+基于无线NoC提出了3D-NoC的结构，将GPU、CPU、MC放在不同的层上，合理设计减少energy:
+
+<img src="./6.4.png" alt="6.4" style="zoom:67%;" />
+
+## 2 有价值的idea
+
+本文提出了基于GPU和CPU不同特点的architecture设计，为今后片上是这种core的组合提供了方案，同时还提出了8种用来测试NoC的性能。
+
+## References
+
+[6]Joardar, Biresh & Doppa, Janardhan & Pande, Partha & Marculescu, Diana & Marculescu, Radu. (2018). Hybrid on-chip communication architectures for heterogeneous manycore systems. 1-6. 10.1145/3240765.3243480. 
+
+
+
+
+
+# 7  Architecture Support for Accelerator-Rich CMPs  
+
+## 1 研究目的
+
+本文主要是提出了一种基于NoC的ARC模型，如下图所示，运用GAM来实现accelerator的调度，实现accelerator的共享与组合。
+
+<img src="./7.2.png" alt="7.2" style="zoom:67%;" />
+
+#### 1.1 GAM  
+
+本文中的GAM主要用于accelerator的调度，图中给出了通信过程，core通过GAM来实现accelerator的预约，GAM中记录着 accelerator IDs 的列表和相应 accelerator的 estimated wait times ，在core对某个accelerator预约之后，GAM将request的core的ID写入accelerator的等待列表里面并且按照FCFS执行。
+
+<img src="./7.3.png" alt="7.3" style="zoom:67%;" />
+
+GAM还可以实现accelerator的共享，主要根据以下四个方面：
+
+1) available accelerators的类型; 
+
+2) 每种 accelerator的数量;
+
+3) 在accelerator上运行的jobs的starting times 和 estimated execution times;
+
+4) accelerator的waiting list 以及每个job的estimated runtime 
+
+execution times即accelerator处理时间的回归模型，是用一个基于data-size-parameterized的二次多项式回归模型来预测accelerator时间，如下图所示：
+
+<img src="./7.1.png" alt="7.1" style="zoom:50%;" />
+
+#### 1.2 Accelerator Composition  
+
+accelerator的产生如下图所示，selection criteria是选择的标准。在core调用accelerator之后，会将task description写入shared memory中，可以实现accelerator的组合。（task description：the location of arguments, data layout, which accelerators are involved in the computation, the computation to be performed, and the order in which to perform necessary operations. ）
+
+1）Accelerator Chaining
+
+2)  Accelerator Virtualization
+
+<img src="./7.4.png" alt="7.3" style="zoom:67%;" />
+
+## 2 有价值的idea
+
+主要是提出了ARC的模型，初步提出了GAM的概念和作用，另外还实现了accelerator的组合，可以在本文基础上为GAM多添加一些功能，以及accelerator存取数据的优化，实现一个完整的网络。
+
+## References
+
+[7] J. Cong, M. A. Ghodrat, M. Gill, B. Grigorian and G. Reinman, "Architecture support for accelerator-rich CMPs," DAC Design Automation Conference 2012, San Francisco, CA, 2012, pp. 843-849.
+
+
+
+
+
+
 
 
 
@@ -289,3 +389,7 @@ network interface（NI）在每个ordering point接收并检查token，确保每
 # 优化图
 
 ![脑图](./脑图.png)
+
+# Interconnect
+
+<img src="./7.5.png" alt="7.5" style="zoom:80%;" />
