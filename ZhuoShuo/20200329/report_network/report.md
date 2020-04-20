@@ -378,13 +378,109 @@ accelerator的产生如下图所示，selection criteria是选择的标准。在
 
 
 
+# 8 Learning-Based Application-Agnostic 3D NoC Design for Heterogeneous Manycore Systems
+
+## 1 研究目的
+
+当异构NoC上CPU，GPU，LLC的数目增加的时候，2D的NoC是不能满足需求的，于是提出了3D的NoC，而3D的NoC上的CPU等如何放置是根据latency, throughput, temperature, energy这四个目标来优化决定的。本文基于如何优化提出了MOO-STAGE的多目标优化方法。
+
+#### 1.1 traffic pattern
+
+本文研究了不同的application的traffic pattern，和文献[6]中的一样，根据研究发现，CPU中的通信主要是一个main core的，GPU-GPU的通信也比较少，大部分的是在LLC和GPU之间 many-to-few的通信。而且这种模式和规模以及application是无关的，所以基于这个模式可以提出四种优化目标。
+
+#### 1.2 优化目标
+
+##### 1.2.1 latency
+
+latency就是CPU通信的优化目标，在这里将latency用以下公式来表示：
+
+<img src="./8.1.png" alt="8.1" style="zoom:80%;" />
+
+C代表CPU个数，M代表LLC个数，r是router stages，h是从CPU到LLC的hop个数，d是总体延迟，f是通信次数，优化目标就是使得latency最小。
+
+##### 1.2.2 throughput
+
+throughput就是GPU通信的优化目标，主要是为了实现链路的throughput能够最大，本文认为想要throughput最大，可以转化为每一条链路都被充分利用，就是没有特别拥挤的链路，即利用率：
+
+<img src="./8.2.png" alt="8.2" style="zoom:80%;" />
+
+R 代表tile的个数，p表示core的链路是否是通的，最终是通过U的方差和均值实现：
+
+<img src="./8.3.png" alt="8.3" style="zoom:80%;" />
+
+优化目标就是使得均值和方差最小。
+
+##### 1.2.3  Thermal Requirements
+
+由于3D的NoC集成程度比较高，所以选择合适的排列使得温度降低是有必要的，因此minimize温度T也是优化目标之一。
+
+##### 1.2.4 energy
+
+最后是energy消耗，优化目标是消耗的energy越少越好。
+
+<img src="./8.4.png" alt="8.4" style="zoom:80%;" />
+
+#### 1.3 优化算法
+
+本文提出MOO-STAGE算法，主要分成两个阶段： Local Search和Meta Search，这种算法主要是通过改变训练的初始状态实现全局最优而非局部最优结果。
+
+<img src="./8.5.png" alt="8.5" style="zoom:80%;" />
+
+##### 1.3.1 local search
+
+在local search中，提出了the Pareto hypervolume (PHV)来衡量设计的好坏，目标是maximizePHV，本文算法采用的是 greedy search，当PHV增加的时候，就将这种设计state添加进去，最终返回设计集合，轨迹，最终的设计状态：
+
+ <img src="./8.6.png" alt="8.6" style="zoom:60%;" />
+
+##### 1.3.2 meta search
+
+meta search的目的就是寻找一个evaluate的函数预测从某个初始state开始的结果，从而将一些不太好的starting state丢弃，为local search提供好的starting state。在初始化之后，将local search中的state添加到global state的集合中，当不能再添加的时候，就输出集合。否则，就将之前的轨迹和PHV都添加到训练集合中，并且训练evaluate函数，这里使用 greedy search优化函数，得到restart的design，给local search使用。
+
+<img src="./8.7.png" alt="8.7" style="zoom:60%;" />
+
+使用这种算法可以使得优化时间减少，而且得到的是最优解。
+
+
+
+## 2 有用的idea
+
+本文提出了一种3D的NoC架构，并且利用MOO-STAGE的方法进行多目标优化，实验是在GEM5上进行模拟，最终得到一种比较好的排列方式。
+
+
+
+## Refercence
+
+[8]Joardar, Biresh Kumar et al. “Learning-Based Application-Agnostic 3D NoC Design for Heterogeneous Manycore Systems.” *IEEE Transactions on Computers* 68 (2019): 852-866.
+
+
+
+# 9 Intelligent Hotspot Prediction for Network-on-Chip-Based Multicore Systems
+
+## 1 研究目的
+
+当某个router或者某几个router的收到的packet的速率大于它们可以处理的速率时，就会产生hotspot，而这种hotspot可能会导致整个NoC的瘫痪，本文提出了一种基于ANN的hotspot预测机制，这种方法解决了之前因为application不同而导致预测失败的问题。
+
+#### 1.1 ANN architecture
+
+本文提出的ANN处理模型可以看作是NoC上的一个PE，这个ANN监测附近的router的流量，返回有可能产生hotspot的router的位置。
+
+<img src="./9.1.png" alt="9.1" style="zoom:60%;" />
+
+ANN需要从router获取利用率有关的信息，检测范围可以是2 × 2，3 × 3，4 × 4，然后将这些组合起来，
+
+<img src="./9.3.png" alt="9.3" style="zoom:60%;" />
+
+当然，范围越小准确性越高，但是当router的范围减小的时候，workload也在增加，所以需要在两者之间找到一种平衡，4 × 4是最优的：
+
+<img src="./9.2.png" alt="9.2" style="zoom:60%;" />
 
 
 
 
 
+## Refercence
 
-
+[9] Kakoulli, Elena et al. “Intelligent Hotspot Prediction for Network-on-Chip-Based Multicore Systems.” *IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems* 31 (2012): 418-431.
 
 # 优化图
 
