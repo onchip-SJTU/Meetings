@@ -466,21 +466,169 @@ meta search的目的就是寻找一个evaluate的函数预测从某个初始stat
 
 <img src="./9.1.png" alt="9.1" style="zoom:60%;" />
 
-ANN需要从router获取利用率有关的信息，检测范围可以是2 × 2，3 × 3，4 × 4，然后将这些组合起来，
+ANN需要从router获取利用率的信息，检测范围可以是2 × 2，3 × 3，4 × 4，然后将这些组合起来，
 
 <img src="./9.3.png" alt="9.3" style="zoom:60%;" />
+
+ANN的节点表示如下：
+
+<img src="./9.4.png" alt="9.4" style="zoom:60%;" />
+
+输出层输出的是某个路由器是否会出现hotspot，若会，输出1.
 
 当然，范围越小准确性越高，但是当router的范围减小的时候，workload也在增加，所以需要在两者之间找到一种平衡，4 × 4是最优的：
 
 <img src="./9.2.png" alt="9.2" style="zoom:60%;" />
 
+#### 1.2  训练过程
 
+mesh如何分配给ANN如下图所示，重合部分的hotspot的判断可以采用voting scheme，用OR来决定。本文中选用的是8×8的mesh，在此网络中，用4个4×4的ANN，由于没有overlap的router，又设置了一个top-level的ANN，运用OR的方法判定边界上的router是否有可能成为hotspot。本文收集了超过50万个周期的缓冲区利用率数据，对模型进行训练，但是文中只比较了预测结果和真实trace，计算了预测方法的准确率，但是没有提出路由的更改方法。
 
+<img src="./9.5.png" alt="9.2" style="zoom:60%;" />
 
+## 2 有价值的idea
+
+本文提出了一种基于ANN预测NoC中hotspot的方法，可以基于这个方法将预测结果作为反馈用于GEM中负责调解router的分配。
 
 ## Refercence
 
 [9] Kakoulli, Elena et al. “Intelligent Hotspot Prediction for Network-on-Chip-Based Multicore Systems.” *IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems* 31 (2012): 418-431.
+
+
+
+
+
+# 10 BiNoCHS: Bimodal Network-on-Chip for CPU-GPU Heterogeneous Systems
+
+## 1 研究目的
+
+对于GPU和CPU、LLC的异构网络，本文提出了一种可重构的network，在高throughput的时候会激活附加的channel，在低throughput的时候就关闭这些channel。本文主要将工作模式分成两类，CPU-dominated low-traffic 和high-traffic GPU 两种情况，如下图所示，提出了BiNoCHS的model。
+
+<img src="./10.1.png" alt="9.2" style="zoom:80%;" />
+
+### 1.1 BiNoCHS概述
+
+当通信channel增加的时候，power requirement也在增加，为了维持power budget，需要将voltage和frequency降低，然而这样又会增加延迟，因此仅仅增加通信链路是不可行的。
+
+BiNoCHS将通信分成两种，一种是没有增加的通信链路，一种是有，而BiNoCHS通过调节 topology, routing,physical/virtual channel resources,  frequency/voltage来使得两种不同的通信模式都有最高的效率。
+
+### 1.2 优化方法
+
+BiNoCHS提供了两种模式，分别工作在nominal和near-threshold voltage两种模式下，分别对应low-traffic CPU-dominated 和 GPU-heavy NoC-intensive workloads。
+
+#### 1.2.1 More virtual channels
+
+在输入端口将virtual channel的数量增加（比如double），可以减小congestion，但是会给VCA带来负担，需要仲裁的数量增加，因此本文提出了 reconfigurable Reduced Logic Arbiter (RLA)，就是用两个arbiter级联，当在nominal voltage的时候，第二个arbiter就关掉，这样latency就会减小，throughput增大。
+
+<img src="./10.2.png" alt="9.2" style="zoom:80%;" />
+
+#### 1.2.2 Reducing network concentration
+
+network concentration是指每个router连接的节点数量，在throughput较高的时候将network concentration减小，即扩展网络，可以减少拥塞，如下图所示，
+
+<img src="./10.3.png" alt="9.2" style="zoom:60%;" />
+
+这里的扩展方法是将原本的旁路router也投入使用，如图是将B和C以及连接的D加入链路中，
+
+<img src="./10.4.png" alt="9.2" style="zoom:60%;" />
+
+B和C的结构如下图，当nominal voltage下通过红色线传输数据，这个选择由voltage来控制。
+
+<img src="./10_6.png" alt="9.2" style="zoom:80%;" />
+
+#### 1.2.3 Using non-minimal adaptive routing
+
+本文还简要的介绍了adaptive routing的算法，即在threshold-voltage的条件下，允许packet使用不同的通信链路来避免congestion，使得traffic distribution更加均匀，从而增大throughput。在nominal voltage下由于这种算法会增加延迟，因此不使用。
+
+
+
+## 2 有价值的idea
+
+本文提出一种双模式工作的方式，从而增大throughput的同时不会增加latency。
+
+## Reference
+
+[10] Mirhosseini, Amirhossein et al. “BiNoCHS: Bimodal network-on-chip for CPU-GPU heterogeneous systems.” 2017 Eleventh IEEE/ACM International Symposium on Networks-on-Chip (NOCS) (2017): 1-8.
+
+
+
+# 11 Online Learning for Adaptive Optimization of Heterogeneous SoCs
+
+## 1 研究目的
+
+在异构SoC上，为了实现energy  efficient,本文提出了一种预测 performance, power consumption and temperature 的adaptive model。本文用 GPU frame processing time来衡量performance, GPU power consumption  和power -temperature dynamics衡量后两者。
+
+### 1.1 Adaptive GPU Performance Model 
+
+首先提出了 frame processing time，是GPU frequency和 workload的函数，workload用GPU performance counters来表示，表达式为：
+
+<img src="./11.1.png" alt="9.2" style="zoom:80%;" />
+
+f代表频率，x表示performance counters，
+
+<img src="./11.2.png" alt="9.2" style="zoom:80%;" />
+
+表示了时间与频率及x之间的关系，而
+
+<img src="./11.3.png" alt="9.2" style="zoom:80%;" />
+
+组成了feature set **h**k,然后利用RLS或者LMS迭代，找到使得误差最小的系数，<img src="./11.5.png" alt="9.2" style="zoom:80%;" />
+
+得到预测结果如下：
+
+<img src="./11.15.png" alt="9.2" style="zoom:80%;" />
+
+
+
+### 1.2 Adaptive Power Consumption Model 
+
+首先将power consumption写成如下表达式：
+
+<img src="./11.6.png" alt="9.2" style="zoom:80%;" />
+
+其中，leakage电流可以表示为：
+
+<img src="./11.7.png" alt="9.2" style="zoom:80%;" />
+
+其中T表示温度，*c*1 和 *c*2 及***I***gate在offline通过非线性回归得到（另一篇文章），因此下式中的第二项已经得到，
+
+<img src="./11.8.png" alt="9.2" style="zoom:80%;" />
+
+第一项中的主要参数可以表示为workload和frequency的函数，与第一部分中的performance counters一样，运用下图的feature，
+
+<img src="./11.9.png" alt="9.2" style="zoom:80%;" />
+
+可以得到表达式为：
+
+<img src="./11.10.png" alt="9.2" style="zoom:80%;" />
+
+所以运用RLS得到上式，可以预测Power。
+
+### 1.3 Power-Temperature Dynamics
+
+首先动态温度可以表示为：
+
+<img src="./11.11.png" alt="9.2" style="zoom:80%;" />
+
+其中Ct 表示 thermal capacitance, Gt 表示 thermal conductance,T 是 temperature,  P 是power consumption，将时间离散化得到：
+
+<img src="./11.12.png" alt="9.2" style="zoom:80%;" />
+
+A是个矩阵，代表k时刻的T对K+1时刻T的影响，是各个Hotspot处的值，当认为fixed point的状态已经稳定的时候， 可以用下式来预测：
+
+<img src="./11.13.png" alt="9.2" style="zoom:80%;" />
+
+这里的P可以用1.2中的表示：
+
+<img src="./11.14.png" alt="9.2" style="zoom:80%;" />
+
+## 2 有价值的idea
+
+本文提出了一种运用RLS和LMS来预测performance、power consumption和temperature的方式。
+
+## Reference
+
+[11] Bhat, Ganapati et al. “Online Learning for Adaptive Optimization of Heterogeneous SoCs.” *2018 IEEE/ACM International Conference on Computer-Aided Design (ICCAD)* (2018): 1-6.
 
 # 优化图
 
