@@ -630,6 +630,115 @@ A是个矩阵，代表k时刻的T对K+1时刻T的影响，是各个Hotspot处的
 
 [11] Bhat, Ganapati et al. “Online Learning for Adaptive Optimization of Heterogeneous SoCs.” *2018 IEEE/ACM International Conference on Computer-Aided Design (ICCAD)* (2018): 1-6.
 
+
+
+
+
+# 12 RAPID: Memory-Aware NoC for Latency Optimized GPGPU Architectures
+## 1 研究目的
+
+本文主要是针对GPGPU提出的memory存取的路由架构，减少时延和能耗，提高效率。主要提出了两层架构，第一层是request plane，第二层是reply plane，在request plane，主要是由低功耗低时延的router组成，在reply plane，主要是由 fast overlay circuits组成，使得flit可以在3个cycle内到达目的节点。
+
+### 1.1  Request Plane NoC
+
+GPGPU的request plane的通信数量相对于CPU traffic来说较小，所以可以减少VC的数量，从而减少buffer、look-up table。
+
+另外，如下图所示，每一列只有一个MC（memory controller），每个router有自己关于这一列MC位置的标识，这样在判断request路由的时候不用比较Y方向了可以减少时延。
+
+<img src="./12.2.png" alt="9.2" style="zoom:80%;" />
+
+
+
+### 1.2  MACRO Reply Plane NoC
+
+#### 1.2.1 Global Overlay Manager
+
+提出了一种电路时间分配的管理器，在NoC中心附近，每一个overlay circuit都对应一个MC，而GOM负责为每个overlay circuit分配传输时间，类似于时分复用，如图，分配的时间主要是基于MC输出队列中的未处理的packet数量，从L2和DRAM到达MC的packet的频率。
+
+<img src="./12.3.png" alt="9.2" style="zoom:80%;" />
+
+随后generated time window information会被传输给router。
+
+<img src="./12.4.png" alt="9.2" style="zoom:80%;" />
+
+#### 1.2.2 Router Architecture
+
+1）Overlay controller
+
+是在每个路由器出的控制器，主要是在从GOM接收信息后负责router的布局，需要2 cycles。
+
+<img src="./12.6.png" alt="9.2" style="zoom:80%;" />
+
+2）Route lookup table
+
+每一个router 会有一个针对不同circuit的查找表，在每一个time window之前都会有一次查询，来布置每个router。
+
+<img src="./12.7.png" alt="9.2" style="zoom:80%;" />
+
+3）Input selection
+
+每个router会有一个Input selection选择怎样传递flit,如图：
+
+<img src="./12.8.png" alt="9.2" style="zoom:80%;" />
+
+#### 1.2.3 Memory Controller (MC) Design
+
+会将在“burst duration”内传输进来的request标记为burst request，储存在burst queue中，优先处理burst request，本文采用的是处理1个normal packet处理3个burst packet，这样可以减少时延。
+
+<img src="./12.5.png" alt="9.2" style="zoom:80%;" />
+
+## 2 有价值的idea
+
+提出了一种对于GPGPU的数据传输模式的router架构，减少时延及功耗。
+
+## References
+
+[12] V. Y. Raparti and S. Pasricha, "RAPID: Memory-Aware NoC for Latency Optimized GPGPU Architectures," in IEEE Transactions on Multi-Scale Computing Systems, vol. 4, no. 4, pp. 874-887, 1 Oct.-Dec. 2018, doi: 10.1109/TMSCS.2018.2871094.
+
+
+
+
+
+# 13 A Holistic Approach Towards Intelligent Hotspot Prevention in Network-on-Chip-Based Multicores
+
+## 1 研究目的
+
+本文主要是在文章9的基础上，在用ANN预测可能产生的Hotspot之后，将packet分成 HSD和 NonHSD两类，前者是传输到有可能形成hotspot的router，提出了一种router架构，根据average buffer utilization来衡量是否传输packet。
+
+### 1.1 router架构
+
+如下图所示，文章提出了一种将ANN预测加入router的机制，通过ANN预测的结果可以将injection packet分为HSD和 NonHSD两类，分别放入两个等待queue中，NonHSD的packet是可以直接的进入网络的，但是HSD的packet需要节流控制，以防引起堵塞，在有可能形成hotspot的router恢复之后，原来的HSD的packet可以正常传输，而如果hotspot的router被预测为可能持续成为hotspot，则需要一种判断指标，使得HSD的packet有序进入网络中。
+
+<img src="./13.1.png" alt="9.2" style="zoom:70%;" />
+
+### 1.2  routing algorithm
+
+如下图所示，本文提出了两种routing algorithm，主要是依据每个router的 aggregate count of free VCs，数量越多则说明VC的利用率越低，则packet越有可能按照此路径传输，以下两种路由算法的区别在于，HPRA_a是只按照X或者Y进行VC的aggregate，当X或Y方向 exhaust时候，再按照另一方向累加，HPRA_b是分别按照矩形周长进行aggregate。根据 aggregate count，可以判断网络情况，根据是否超过某一阈值判断要不要将HSD的packet注入网络中。
+
+<img src="./13.2.png" alt="9.2" style="zoom:70%;" />
+
+## 2 有价值的idea
+
+基于ANN的router的判断方法，在文献9的基础上，提出如何路由数据包的方法。
+
+## Reference
+
+[13] Soteriou, Vassos et al. “A Holistic Approach Towards Intelligent Hotspot Prevention in Network-on-Chip-Based Multicores.” *IEEE Transactions on Computers* 65 (2016): 819-833.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 优化图
 
 ![脑图](./脑图.png)
