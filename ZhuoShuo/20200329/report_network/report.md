@@ -729,6 +729,55 @@ GPGPU的request plane的通信数量相对于CPU traffic来说较小，所以可
 
 
 
+# 14 Achieving Flexible Global Reconfiguration in NoCs Using Reconfigurable Rings
+
+## 1 研究目的
+
+本文介绍了一种基于ring和NoC的重构方法。鉴于之前的reconfiguration的一些方法对于无法预测的电路会导致时延过长，所以提出了一种新的重构方法。
+
+### 1.1 Ring-based Reconfigurable Architecture
+
+基础的ring的结构如下图所示，就是将相邻的两列或者两行形成一个环，
+
+<img src="./14.3.png" alt="14.1" style="zoom:70%;" />
+
+而重构之后就是将水平环和垂直环combine，如左图所示。
+
+<img src="./14.1.png" alt="14.1" style="zoom:70%;" />
+
+### 1.2 Reconfiguration
+
+重构的主要目的是将一些原本heavy load的节点获得更多的链路资源，所以有以下的优化目标：
+
+<img src="./14.2.png" alt="14.1" style="zoom:70%;" />
+
+其中f表示两个节点之间的通信，a表示两个节点之间是不是combine了。
+
+对此，本文提出了以下的重构算法，先找row中的最大f的节点，再找列中的最大f节点，
+
+<img src="./14.4.png" alt="14.1" style="zoom:70%;" />
+
+时间复杂度属于线性时间。
+
+### 1.3 Intergration with Router-Based Network
+
+两者结合的路由遵循以下规则：
+
+1）当packet可以通过combined ring或者已有的ring进行传输时，用ring网络传输；
+
+2）没有的话可以用基于router的mesh进行传输。
+
+数据ejection原则：
+
+当来自两个网络的包同时到达的时候，会有两个buffer，当buffer满的时候，router的packet会在router的input buffer中存储，而ring网络没有buffer，就会偏离到下一个节点，然后继续传输，直到再次回到这个节点。
+
+## 2 有价值的idea
+
+本文提出了一种ring和NoCmesh结合的模型，减少时延，提高效率。
+
+## Reference
+
+[14] Wang, Liang et al. “Achieving Flexible Global Reconfiguration in NoCs Using Reconfigurable Rings.” *IEEE Transactions on Parallel and Distributed Systems* 31 (2020): 611-622.
 
 
 
@@ -736,8 +785,41 @@ GPGPU的request plane的通信数量相对于CPU traffic来说较小，所以可
 
 
 
+# 15 Optimizing Routerless Network-on-Chip Designs: An Innovative Learning-Based Framework
+
+## 1 研究目的
+
+本文提出了一种基于routerless NoC和DRL的优化算法。routerless NoC是用连接的ring代替router进行数据传输的一种结构，随着ring的增加，使得网络中的各个数据节点之间可以实现通信，但是hop count会增加，从而增加了延时，本文主要是基于DRL和Monte Carlo tree search在实现ring增加的同时保证延时较小。
+
+### 1.1 routerless NoC
+
+如下图所示，图(c)中描述的是routerless NoC，通过将ring的重叠实现数据传输，
+
+<img src="./15.1.png" alt="14.1" style="zoom:70%;" />
+
+使用RL基本原理如下图所示，
+
+<img src="./15.2.png" alt="14.1" style="zoom:70%;" />
+
+### 1.2  DRL framework for routerless NoC designs
+
+本文提出了无路由的深度强化学习框架NoC设计，如下图所示，首先由DNN选择一个初始状态，此时只有一个单ring，经过MCTS进行搜索，最终返回V和P，根据V再进行RL的迭代，最终返回一个完整的NoC连接。
+
+<img src="./15.4.png" alt="14.1" style="zoom:70%;" />
+
+<img src="./15.3.png" alt="14.1" style="zoom:70%;" />
 
 
+
+## 2 有价值的idea
+
+本文基于DRL和MCTS对routerless NoC进行优化，如果使用ring的结构，可以用这个方法减少时延实现连接。
+
+
+
+## Reference
+
+[15] Lin, Ting-Ru et al. “Optimizing Routerless Network-on-Chip Designs: An Innovative Learning-Based Framework.” *ArXiv* abs/1905.04423 (2019): n. pag.
 
 # 优化图
 
