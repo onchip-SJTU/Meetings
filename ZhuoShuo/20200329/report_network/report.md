@@ -795,7 +795,9 @@ GPGPU的request plane的通信数量相对于CPU traffic来说较小，所以可
 
 如下图所示，图(c)中描述的是routerless NoC，通过将ring的重叠实现数据传输，
 
-<img src="./15.1.png" alt="14.1" style="zoom:70%;" />
+<img src="./15.1.png" alt="14.1" style="zoom:60%;" />
+
+<img src="./15.7.png" alt="14.1" style="zoom:60%;" />
 
 使用RL基本原理如下图所示，
 
@@ -806,6 +808,14 @@ GPGPU的request plane的通信数量相对于CPU traffic来说较小，所以可
 本文提出了无路由的深度强化学习框架NoC设计，如下图所示，首先由DNN选择一个初始状态，此时只有一个单ring，经过MCTS进行搜索，最终返回V和P，根据V再进行RL的迭代，最终返回一个完整的NoC连接。
 
 <img src="./15.4.png" alt="14.1" style="zoom:70%;" />
+
+会先设置跳数矩阵，根据hop count最小的原则进行搜索，
+
+<img src="./15.5.png" alt="14.1" style="zoom:70%;" />
+
+MCTS搜索主要分为以下三个阶段，从一个routerless的状态，通过添加不同的loop最终形成全连接，并且保证hop count最小，V表示DRL中的Value的值，
+
+<img src="./15.6.png" alt="14.1" style="zoom:70%;" />
 
 <img src="./15.3.png" alt="14.1" style="zoom:70%;" />
 
@@ -820,6 +830,84 @@ GPGPU的request plane的通信数量相对于CPU traffic来说较小，所以可
 ## Reference
 
 [15] Lin, Ting-Ru et al. “Optimizing Routerless Network-on-Chip Designs: An Innovative Learning-Based Framework.” *ArXiv* abs/1905.04423 (2019): n. pag.
+
+
+
+# 16 Routerless Network-on-Chip
+
+## 1 研究目的
+
+本文主要是提出了一种利用wiring资源代替router进行数据传输的方法，提出了routerless的架构，并且具有可延展的特性。
+
+### 1.1 routerless NoC design
+
+本文首先给出了2 *×* 2的ring图，有两个部分组成，一个是顺时针的环，一个是逆时针方向，Mk表示k *×* k网络所有的环，Lk表示第k层的环，
+
+<img src="./16.1.png" alt="14.1" style="zoom:70%;" />
+
+而routerless NoC的主要思想是在已有环的基础上增加新的环，以2 *×* 2增加到8 *×* 8的NoC为例，每一层主要是分成四个部分，
+
+<img src="./16.3.png" alt="14.1" style="zoom:70%;" />
+
+最后形成并集，公式如下：
+
+<img src="./16.2.png" alt="14.1" style="zoom:70%;" />
+
+所以在设计网络的时候，可以利用递归的方法得到最终的结果，其中G是产生ring的函数，被迭代调用，其中M‘表示从需要转置。
+
+<img src="./16.4.png" alt="14.1" style="zoom:70%;" />
+
+
+
+
+
+## 2 有价值的idea
+
+提供了一种取代router的方法，最终在throughput，latency，power三个方面都有改进。
+
+
+
+## Reference
+
+[16]Alazemi, F., AziziMazreah, A., Bose, B., & Chen, L. (2018). Routerless Network-on-Chip. *2018 IEEE International Symposium on High Performance Computer Architecture (HPCA)*, 492-503.
+
+
+
+# 17 IMR: High-Performance Low-Cost Multi-Ring NoCs
+
+## 1 研究目的
+
+本文主要介绍了一种运用isolated multi-ring代替router的方法，即IMR，实现减少latency及硬件开销。
+
+### 1.1 IMR Design
+
+IMR的设计有两个原则，第一个是任意的两个core之间至少有一个ring连接，第二个是对于有多个ring覆盖的source core，要选最优的ring实现packet的传输。
+
+对于第一个原则，本文提出的方法是用一个二进制比特序列来表示，即任意的N *×* N的NoC都可以表示为（N-1） *×* （N-1）的block的组合，若这个block在ring内，其value为1，否则为0。
+
+<img src="./17.4.png" alt="14.1" style="zoom:70%;" />
+
+在decode Ring-map时，将这些block中的点连接起来，按照是否相邻或者是outer的点连接，也可以分成component进行连接，direction也被包含在里面。
+
+对于第二个原则，本文使用的是目标优化，
+
+<img src="./17.1.png" alt="14.1" style="zoom:70%;" />
+
+其中s是解决方案，D代表 average minimal inter-core distance，D越小，performance越好，L代表total length of all rings，反映电路的硬件负载，在D相等的时候选择L较小的s。使用Evolutionary Algorithm得到最优算法：
+
+<img src="./17.2.png" alt="17.2" style="zoom:60%;" />
+
+## 2 有价值的idea
+
+本文提出了一种使用ring代替router的方案，并提出了选择ring的算法,相较于其之前的架构是有优势的，但是搜索速度较慢。
+
+## Reference
+
+[17] Liu, S., Chen, T., Li, L., Feng, X., Xu, Z., Chen, H., Chong, F.T., &  Chen, Y. (2016). IMR: High-Performance Low-Cost Multi-Ring NoCs. *IEEE Transactions on Parallel and Distributed Systems, 27*, 1700-1712.
+
+
+
+
 
 # 优化图
 
