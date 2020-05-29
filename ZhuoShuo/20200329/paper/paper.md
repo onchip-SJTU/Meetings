@@ -119,6 +119,8 @@ c）异构的加速器同时被power的可能性小于同构的acceleraor.
 
 [26]中提出了一种针对异构SoC的双模式工作方法，可以根据电压的不同选择不同的工作模式，减少latency增大throughput。
 
+[28]中提出了一种针对GPGPU的架构，由request plane和reply plane组成，还提出了GOM，通过叠加电路的使用实现减少时延和功耗。
+
 
 
 ## 3 Predictive Methods in the Optimization in the Network
@@ -183,7 +185,9 @@ ARMA模型的建立分为两个阶段:识别估计阶段和模型检验阶段。
 
 [23]和[24]提出当片上是如CPU、GPU、LLC的排列时，网络的traffic pattern呈现出GPU-LLC、CPU-LLC的数据通信量较大而其他的通信量较小，因此基于这种pattern对网络进行优化，可以设置latency、throughput、energy、thermal requirements等目标进行多目标优化，由于传统的MOO会因为初始值的影响使得最终结果不好，所以[24]详细介绍了基于ML的MOO-STAGE算法，将寻找最优解的过程分成了local research和meta research两部分，将一些比较糟糕的初始值去掉，得到较好的design。
 
+### 4.3 Ring-based NoC
 
+[29]提出了一种用multi-ring代替router的IMR架构，相较于之前的一些架构有明显的优化作用，但是搜索太慢，基于此，[30]提出了一种新型的可伸缩的routerless的架构，并提出了递归得到NoC的算法，减小延时，提高throughput，而[31]基于以上，提出了使用DRL和Monte Carlo tree search优化routerless结构，在ring增加的同时减小hop count，但是scalability不太好。[32]提出了一种onion设计，基于[30]做了一些改进，减小了w，且自外向内的设计使得n为技术的时候同样可以实现递归。
 
 ## References
 
@@ -240,3 +244,11 @@ ARMA模型的建立分为两个阶段:识别估计阶段和模型检验阶段。
 [26] Mirhosseini, Amirhossein et al. “BiNoCHS: Bimodal network-on-chip for CPU-GPU heterogeneous systems.” 2017 Eleventh IEEE/ACM International Symposium on Networks-on-Chip (NOCS) (2017): 1-8.
 
 [27] Bhat, Ganapati et al. “Online Learning for Adaptive Optimization of Heterogeneous SoCs.” *2018 IEEE/ACM International Conference on Computer-Aided Design (ICCAD)* (2018): 1-6.
+
+[28] V. Y. Raparti and S. Pasricha, "RAPID: Memory-Aware NoC for Latency Optimized GPGPU Architectures," in IEEE Transactions on Multi-Scale Computing Systems, vol. 4, no. 4, pp. 874-887, 1 Oct.-Dec. 2018, doi: 10.1109/TMSCS.2018.2871094.
+
+[29] Liu, S., Chen, T., Li, L., Feng, X., Xu, Z., Chen, H., Chong, F.T., &  Chen, Y. (2016). IMR: High-Performance Low-Cost Multi-Ring NoCs. *IEEE Transactions on Parallel and Distributed Systems, 27*, 1700-1712.
+
+[30] Alazemi, F., AziziMazreah, A., Bose, B., & Chen, L. (2018). Routerless Network-on-Chip. *2018 IEEE International Symposium on High Performance Computer Architecture (HPCA)*, 492-503.
+
+[31] Lin, Ting-Ru et al. “Optimizing Routerless Network-on-Chip Designs: An Innovative Learning-Based Framework.” *ArXiv* abs/1905.04423 (2019): n. pag.
