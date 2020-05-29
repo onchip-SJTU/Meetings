@@ -187,7 +187,7 @@ ARMA模型的建立分为两个阶段:识别估计阶段和模型检验阶段。
 
 ### 4.3 Ring-based NoC
 
-[29]提出了一种用multi-ring代替router的IMR架构，相较于之前的一些架构有明显的优化作用，但是搜索太慢，基于此，[30]提出了一种新型的可伸缩的routerless的架构，并提出了递归得到NoC的算法，减小延时，提高throughput，而[31]基于以上，提出了使用DRL和Monte Carlo tree search优化routerless结构，在ring增加的同时减小hop count，但是scalability不太好。[32]提出了一种onion设计，基于[30]做了一些改进，减小了w，且自外向内的设计使得n为技术的时候同样可以实现递归。
+[29]提出了一种用multi-ring代替router的IMR架构，相较于之前的一些架构有明显的优化作用，但是搜索太慢，基于此，[30]提出了一种新型的可伸缩的routerless的架构，并提出了递归得到NoC的算法，减小延时，提高throughput，而[31]基于以上，提出了使用DRL和Monte Carlo tree search优化routerless结构，在ring增加的同时减小hop count，但是scalability不太好。[32]提出了一种onion设计，基于[30]做了一些改进，减小了w，且自外向内的设计使得n为奇数的时候同样可以实现递归。
 
 ## References
 
