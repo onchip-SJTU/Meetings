@@ -34,7 +34,7 @@ from __future__ import absolute_import
 from m5.params import *
 from m5.objects import *
 
-#from common import FileSystemConfig
+from common import FileSystemConfig
 
 from .BaseTopology import SimpleTopology
 
@@ -163,9 +163,9 @@ class Ring(SimpleTopology):
         network.int_links = int_links
 
     # Register nodes with filesystem
-    '''
+
     def registerTopology(self, options):
         for i in xrange(options.num_cpus):
             FileSystemConfig.register_node([i],
                     MemorySize(options.mem_size) / options.num_cpus, i)
-    '''
+
