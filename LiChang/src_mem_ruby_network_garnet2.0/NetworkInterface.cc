@@ -190,9 +190,9 @@ NetworkInterface::add_task_HQM()
 	//bool messageEnqueuedThisCycle = checkStallQueue();
 	if (inNetLink->isReady(curCycle())) {
 		flit* t_flit = inNetLink->consumeLink();
-		int vnet = t_flit->get_vnet();
+		//int vnet = t_flit->get_vnet();
 		RouteInfo route = t_flit->get_route();			
-		assert((vnet == 0 || vnet == 1) && route.real_dest != m_id && route.real_dest != 3 * m_num_nodes / 2);//////In CPU & PE we set flit to HQM only in vnet0 and 1, and real dest must be other core
+		assert(route.real_dest != m_id && route.real_dest != 3 * m_num_nodes / 2);//////In CPU & PE we set flit to HQM only in vnet0 and 1, and real dest must be other core
 		t_flit->set_dequeue_time(curCycle());			
 		/******Calculate forward queue id to decide whice vector to pushback******/
 		int forward_queue_id;															
@@ -568,9 +568,10 @@ NetworkInterface::wakeup()
 		// Checking for messages coming from the protocol
 		// can pick up a message/cycle for each virtual net
 		for (int vnet = 0; vnet < inNode_ptr.size(); ++vnet) {						
-			if (vnet == 2) {                                          ////////ignore msg generated in vnet2, CPU only send short msg in vnet0 and vnet1
-				continue;
-			}
+			// if (vnet == 2) {                                          ////////ignore msg generated in vnet2, CPU only send short msg in vnet0 and vnet1
+			// 	continue;
+			// }
+
 			MessageBuffer* b = inNode_ptr[vnet];
 			if (b == nullptr) {
 				continue;
@@ -687,9 +688,9 @@ NetworkInterface::wakeup()
 		// can pick up a message/cycle for each virtual net
 		for (int vnet = 0; vnet < inNode_ptr.size(); ++vnet) {				
 
-			if (vnet == 2) {                                             ////////ignore msg generated in vnet2, PE only send short msg in vnet0 and vnet1
-				continue;
-			}
+			// if (vnet == 2) {                                             ////////ignore msg generated in vnet2, PE only send short msg in vnet0 and vnet1
+			// 	continue;
+			// }
 
 			MessageBuffer* b = inNode_ptr[vnet];
 			if (b == nullptr) {
@@ -732,7 +733,7 @@ NetworkInterface::wakeup()
 				}
 			}
 
-			else if (vnet == 0 || vnet == 1)
+			else //if (vnet == 0 || vnet == 1)
 			{
 				task_queue_PE.push_back(t_flit);								/////////////////////if it is normal msg forwarded by HQM, we push into queue and forward it to DDR
 				//int vnet = t_flit->get_vnet();
@@ -775,47 +776,47 @@ NetworkInterface::wakeup()
 					delete t_flit;
 				}
 			}
-			else
-			{
-				t_flit->set_dequeue_time(curCycle());
-				//printf("PE NI  %d  receive a flit in vnet %d\n", m_id, vnet);
+			// else
+			// {
+			// 	t_flit->set_dequeue_time(curCycle());
+			// 	//printf("PE NI  %d  receive a flit in vnet %d\n", m_id, vnet);
 
-				// If a tail flit is received, enqueue into the protocol buffers if
-				// space is available. Otherwise, exchange non-tail flits for credits.
-				if (t_flit->get_type() == TAIL_ || t_flit->get_type() == HEAD_TAIL_) {
-					if (!messageEnqueuedThisCycle &&
-						outNode_ptr[vnet]->areNSlotsAvailable(1, curTime)) {
-						// Space is available. Enqueue to protocol buffer.
-						outNode_ptr[vnet]->enqueue(t_flit->get_msg_ptr(), curTime,
-							cyclesToTicks(Cycles(1)));
-						// Simply send a credit back since we are not buffering
-						// this flit in the NI
-						sendCredit(t_flit, true);
+			// 	// If a tail flit is received, enqueue into the protocol buffers if
+			// 	// space is available. Otherwise, exchange non-tail flits for credits.
+			// 	if (t_flit->get_type() == TAIL_ || t_flit->get_type() == HEAD_TAIL_) {
+			// 		if (!messageEnqueuedThisCycle &&
+			// 			outNode_ptr[vnet]->areNSlotsAvailable(1, curTime)) {
+			// 			// Space is available. Enqueue to protocol buffer.
+			// 			outNode_ptr[vnet]->enqueue(t_flit->get_msg_ptr(), curTime,
+			// 				cyclesToTicks(Cycles(1)));
+			// 			// Simply send a credit back since we are not buffering
+			// 			// this flit in the NI
+			// 			sendCredit(t_flit, true);
 
-						// Update stats and delete flit pointer
-						incrementStats(t_flit);
-						delete t_flit;
-					}
-					else {
-						// No space available- Place tail flit in stall queue and set
-						// up a callback for when protocol buffer is dequeued. Stat
-						// update and flit pointer deletion will occur upon unstall.
-						m_stall_queue.push_back(t_flit);
-						m_stall_count[vnet]++;
+			// 			// Update stats and delete flit pointer
+			// 			incrementStats(t_flit);
+			// 			delete t_flit;
+			// 		}
+			// 		else {
+			// 			// No space available- Place tail flit in stall queue and set
+			// 			// up a callback for when protocol buffer is dequeued. Stat
+			// 			// update and flit pointer deletion will occur upon unstall.
+			// 			m_stall_queue.push_back(t_flit);
+			// 			m_stall_count[vnet]++;
 
-						auto cb = std::bind(&NetworkInterface::dequeueCallback, this);
-						outNode_ptr[vnet]->registerDequeueCallback(cb);
-					}
-				}
-				else {
-					// Non-tail flit. Send back a credit but not VC free signal.
-					sendCredit(t_flit, false);
+			// 			auto cb = std::bind(&NetworkInterface::dequeueCallback, this);
+			// 			outNode_ptr[vnet]->registerDequeueCallback(cb);
+			// 		}
+			// 	}
+			// 	else {
+			// 		// Non-tail flit. Send back a credit but not VC free signal.
+			// 		sendCredit(t_flit, false);
 
-					// Update stats and delete flit pointer.
-					incrementStats(t_flit);
-					delete t_flit;
-				}
-			}
+			// 		// Update stats and delete flit pointer.
+			// 		incrementStats(t_flit);
+			// 		delete t_flit;
+			// 	}
+			// }
 		}
 		///////After everything above is done, send req to DDR
 		send_data_req();
@@ -913,8 +914,8 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
 
 	// Number of flits is dependent on the link bandwidth available.
 	// This is expressed in terms of bytes/cycle or the flit size
-	int num_flits = (int)ceil((double)m_net_ptr->MessageSizeType_to_int(
-		net_msg_ptr->getMessageSize()) / m_net_ptr->getNiFlitSize());
+	int num_flits = 1;//(int)ceil((double)m_net_ptr->MessageSizeType_to_int(
+		//net_msg_ptr->getMessageSize()) / m_net_ptr->getNiFlitSize());
 
 	// loop to convert all multicast messages into unicast messages
 	for (int ctr = 0; ctr < dest_nodes.size(); ctr++) {
@@ -965,13 +966,13 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
 		}
 
 
-		if (vnet == 0 || vnet == 1)									///////if vnet in 0 or 1, set dest as HQM
-		{
+		// if (vnet == 0 || vnet == 1)									///////if vnet in 0 or 1, set dest as HQM
+		// {
 			route.dest_ni = m_num_nodes;
 			route.dest_router = m_net_ptr->get_router_id(route.dest_ni);
 			route.real_dest = destID;
-		}
-		assert(vnet == 0 || vnet == 1);
+		// }
+		// assert(vnet == 0 || vnet == 1);
 		//else
 		//{
 		//	route.dest_ni = destID;
